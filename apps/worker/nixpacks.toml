@@ -10,8 +10,8 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "pnpm --filter @legacyvideo/db build",
-  "pnpm --filter @legacyvideo/worker build"
+  "NODE_ENV=production pnpm --filter @legacyvideo/db build",
+  "NODE_ENV=production pnpm --filter @legacyvideo/worker build"
 ]
 
 [start]
