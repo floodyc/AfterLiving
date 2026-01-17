@@ -1,9 +1,18 @@
 import { Queue } from 'bullmq';
-import Redis from 'ioredis';
 
-const connection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+// Connection options for BullMQ (avoids ioredis version conflicts)
+const connectionOptions = {
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
   maxRetriesPerRequest: null,
-});
+};
+
+// Parse REDIS_URL if provided (overrides host/port)
+if (process.env.REDIS_URL) {
+  const url = new URL(process.env.REDIS_URL);
+  connectionOptions.host = url.hostname;
+  connectionOptions.port = url.port ? parseInt(url.port) : 6379;
+}
 
 export interface EmailJob {
   to: string;
@@ -22,7 +31,7 @@ export interface CleanupJob {
 }
 
 export const emailQueue = new Queue<EmailJob>('email', {
-  connection,
+  connection: connectionOptions,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -40,7 +49,7 @@ export const emailQueue = new Queue<EmailJob>('email', {
 });
 
 export const releaseQueue = new Queue<ReleaseProcessJob>('release-process', {
-  connection,
+  connection: connectionOptions,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -51,7 +60,7 @@ export const releaseQueue = new Queue<ReleaseProcessJob>('release-process', {
 });
 
 export const cleanupQueue = new Queue<CleanupJob>('cleanup', {
-  connection,
+  connection: connectionOptions,
   defaultJobOptions: {
     attempts: 2,
   },

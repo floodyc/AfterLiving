@@ -1,18 +1,27 @@
 import 'dotenv/config';
 import { Worker } from 'bullmq';
-import Redis from 'ioredis';
 import { logger } from './lib/logger';
 import { processEmailJob } from './processors/email';
 import { processReleaseJob } from './processors/release';
 import { processCleanupJob } from './processors/cleanup';
 
-const connection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+// Connection options for BullMQ (avoids ioredis version conflicts)
+const connectionOptions = {
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
   maxRetriesPerRequest: null,
-});
+};
+
+// Parse REDIS_URL if provided (overrides host/port)
+if (process.env.REDIS_URL) {
+  const url = new URL(process.env.REDIS_URL);
+  connectionOptions.host = url.hostname;
+  connectionOptions.port = url.port ? parseInt(url.port) : 6379;
+}
 
 // Email worker
 const emailWorker = new Worker('email', processEmailJob, {
-  connection,
+  connection: connectionOptions,
   concurrency: 5,
   limiter: {
     max: 10,
@@ -33,7 +42,7 @@ emailWorker.on('failed', (job, err) => {
 
 // Release processing worker
 const releaseWorker = new Worker('release-process', processReleaseJob, {
-  connection,
+  connection: connectionOptions,
   concurrency: 2,
 });
 
@@ -50,7 +59,7 @@ releaseWorker.on('failed', (job, err) => {
 
 // Cleanup worker
 const cleanupWorker = new Worker('cleanup', processCleanupJob, {
-  connection,
+  connection: connectionOptions,
   concurrency: 1,
 });
 
@@ -75,7 +84,6 @@ const shutdown = async () => {
     releaseWorker.close(),
     cleanupWorker.close(),
   ]);
-  await connection.quit();
   logger.info('Workers shut down gracefully');
   process.exit(0);
 };
