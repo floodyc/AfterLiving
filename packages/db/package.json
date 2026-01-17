@@ -6,6 +6,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "prisma generate && tsc",
+    "postinstall": "prisma generate",
     "dev": "tsc --watch",
     "generate": "prisma generate",
     "migrate:dev": "prisma migrate dev",
