@@ -5,6 +5,20 @@ import { processEmailJob } from './processors/email';
 import { processReleaseJob } from './processors/release';
 import { processCleanupJob } from './processors/cleanup';
 
+// Validate critical environment variables at startup
+const missingEnvVars: string[] = [];
+
+if (!process.env.DATABASE_URL) missingEnvVars.push('DATABASE_URL');
+if (!process.env.RESEND_API_KEY) missingEnvVars.push('RESEND_API_KEY');
+if (!process.env.MASTER_ENCRYPTION_KEY) missingEnvVars.push('MASTER_ENCRYPTION_KEY');
+
+if (missingEnvVars.length > 0) {
+  logger.warn(
+    { missing: missingEnvVars },
+    '⚠️  Missing environment variables - some features will not work until configured'
+  );
+}
+
 // Connection options for BullMQ (avoids ioredis version conflicts)
 const connectionOptions = {
   host: process.env.REDIS_HOST || 'localhost',
