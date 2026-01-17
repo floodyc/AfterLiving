@@ -13,13 +13,25 @@ import { auditRoutes } from './routes/audit';
 import { adminRoutes } from './routes/admin';
 import { uploadRoutes } from './routes/uploads';
 import { errorHandler } from './middleware/error-handler';
-import { logger } from './lib/logger';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 const server = Fastify({
-  logger,
+  logger: {
+    level: process.env.LOG_LEVEL || 'info',
+    transport:
+      process.env.NODE_ENV === 'development'
+        ? {
+            target: 'pino-pretty',
+            options: {
+              colorize: true,
+              translateTime: 'HH:MM:ss Z',
+              ignore: 'pid,hostname',
+            },
+          }
+        : undefined,
+  },
   requestIdLogLabel: 'reqId',
   disableRequestLogging: false,
 });
@@ -73,18 +85,18 @@ async function start() {
 
     // Start server
     await server.listen({ port: PORT, host: HOST });
-    logger.info(`🚀 API server listening on ${HOST}:${PORT}`);
+    server.log.info(`🚀 API server listening on ${HOST}:${PORT}`);
   } catch (err) {
-    logger.error(err);
+    server.log.error(err);
     process.exit(1);
   }
 }
 
 // Graceful shutdown
 const gracefulShutdown = async () => {
-  logger.info('Received shutdown signal, closing server...');
+  server.log.info('Received shutdown signal, closing server...');
   await server.close();
-  logger.info('Server closed');
+  server.log.info('Server closed');
   process.exit(0);
 };
 

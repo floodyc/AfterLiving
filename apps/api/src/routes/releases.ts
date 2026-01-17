@@ -141,7 +141,7 @@ export async function releaseRoutes(server: FastifyInstance) {
 
     // Notify other verifiers
     const otherVerifiers = verifier.plan.verifiers.filter(
-      (v) => v.id !== verifier.id
+      (v: any) => v.id !== verifier.id
     );
 
     for (const v of otherVerifiers) {
@@ -233,7 +233,7 @@ export async function releaseRoutes(server: FastifyInstance) {
 
     // Find verifier
     const verifier = releaseRequest.plan.verifiers.find(
-      (v) => v.email === verifierEmail
+      (v: any) => v.email === verifierEmail
     );
 
     if (!verifier) {
@@ -248,7 +248,7 @@ export async function releaseRoutes(server: FastifyInstance) {
 
     // Check if verifier already approved/denied
     const existingApproval = releaseRequest.approvals.find(
-      (a) => a.verifierId === verifier.id
+      (a: any) => a.verifierId === verifier.id
     );
 
     if (existingApproval) {

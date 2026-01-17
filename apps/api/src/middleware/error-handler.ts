@@ -1,13 +1,12 @@
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
-import { logger } from '../lib/logger';
 
 export async function errorHandler(
   error: FastifyError,
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  logger.error(
+  request.log.error(
     {
       error: {
         message: error.message,
