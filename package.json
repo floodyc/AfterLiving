@@ -1,0 +1,29 @@
+{
+  "name": "legacyvideo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Secure posthumous video message delivery platform",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "pnpm --filter @legacyvideo/db generate",
+    "db:migrate": "pnpm --filter @legacyvideo/db migrate:dev",
+    "db:migrate:deploy": "pnpm --filter @legacyvideo/db migrate:deploy",
+    "db:studio": "pnpm --filter @legacyvideo/db studio",
+    "db:seed": "pnpm --filter @legacyvideo/db seed",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "turbo": "^1.11.3",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}

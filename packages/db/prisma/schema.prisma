@@ -1,0 +1,239 @@
+// LegacyVideo Database Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum PlanStatus {
+  ACTIVE
+  SUSPENDED
+  COMPLETED
+}
+
+enum MessageStatus {
+  DRAFT
+  PENDING_UPLOAD
+  UPLOADED
+  READY
+  RELEASED
+  REVOKED
+}
+
+enum VerifierStatus {
+  INVITED
+  ACCEPTED
+  DECLINED
+  REVOKED
+}
+
+enum RecipientStatus {
+  PENDING
+  NOTIFIED
+  VIEWED
+}
+
+enum ReleaseRequestStatus {
+  PENDING
+  APPROVED
+  DENIED
+  EXPIRED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String?
+  role          UserRole @default(USER)
+  emailVerified Boolean  @default(false)
+  locked        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  plans         LegacyPlan[]
+  auditEvents   AuditEvent[]
+  verifierRoles Verifier[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model LegacyPlan {
+  id                String     @id @default(cuid())
+  userId            String
+  title             String
+  description       String?
+  approvalThreshold Int        @default(1) // Number of verifier approvals needed
+  totalVerifiers    Int        @default(1) // Total number of verifiers
+  status            PlanStatus @default(ACTIVE)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages        VideoMessage[]
+  verifiers       Verifier[]
+  releaseRequests ReleaseRequest[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("legacy_plans")
+}
+
+model VideoMessage {
+  id               String        @id @default(cuid())
+  planId           String
+  title            String
+  description      String?
+  storageKey       String        @unique // S3 object key
+  encryptedDataKey String // Data encryption key encrypted with master key
+  contentType      String
+  sizeBytes        BigInt
+  durationSeconds  Int?
+  status           MessageStatus @default(DRAFT)
+  uploadedAt       DateTime?
+  releasedAt       DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  plan             LegacyPlan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  recipients       Recipient[]
+  recipientAccess  RecipientAccess[]
+
+  @@index([planId])
+  @@index([status])
+  @@index([storageKey])
+  @@map("video_messages")
+}
+
+model Recipient {
+  id        String          @id @default(cuid())
+  messageId String
+  email     String
+  name      String?
+  status    RecipientStatus @default(PENDING)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  message         VideoMessage      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  recipientAccess RecipientAccess[]
+
+  @@unique([messageId, email])
+  @@index([messageId])
+  @@index([email])
+  @@map("recipients")
+}
+
+model Verifier {
+  id         String          @id @default(cuid())
+  planId     String
+  userId     String? // If verifier is also a user in the system
+  email      String
+  name       String?
+  token      String          @unique // Invitation token
+  status     VerifierStatus  @default(INVITED)
+  invitedAt  DateTime        @default(now())
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  plan             LegacyPlan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  user             User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  releaseRequests  ReleaseRequest[]
+  releaseApprovals ReleaseApproval[]
+
+  @@unique([planId, email])
+  @@index([planId])
+  @@index([email])
+  @@index([token])
+  @@index([status])
+  @@map("verifiers")
+}
+
+model ReleaseRequest {
+  id          String               @id @default(cuid())
+  planId      String
+  verifierId  String
+  note        String? // Reason for release request
+  status      ReleaseRequestStatus @default(PENDING)
+  processedAt DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  plan      LegacyPlan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  verifier  Verifier          @relation(fields: [verifierId], references: [id], onDelete: Cascade)
+  approvals ReleaseApproval[]
+
+  @@index([planId])
+  @@index([verifierId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("release_requests")
+}
+
+model ReleaseApproval {
+  id        String   @id @default(cuid())
+  requestId String
+  verifierId String
+  approved  Boolean
+  note      String?
+  createdAt DateTime @default(now())
+
+  request  ReleaseRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  verifier Verifier       @relation(fields: [verifierId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, verifierId])
+  @@index([requestId])
+  @@index([verifierId])
+  @@map("release_approvals")
+}
+
+model RecipientAccess {
+  id          String    @id @default(cuid())
+  messageId   String
+  recipientId String
+  token       String    @unique // Short-lived signed token
+  expiresAt   DateTime
+  viewedAt    DateTime?
+  revokedAt   DateTime?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  message   VideoMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  recipient Recipient    @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([recipientId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("recipient_access")
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String // e.g., "USER_LOGIN", "VIDEO_UPLOADED", "RELEASE_APPROVED"
+  entityType String? // e.g., "VideoMessage", "ReleaseRequest"
+  entityId   String?
+  metadata   Json? // Additional context
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_events")
+}
