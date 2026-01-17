@@ -11,6 +11,7 @@
     "clean": "rm -rf dist .turbo node_modules"
   },
   "dependencies": {
+    "@legacyvideo/db": "workspace:*",
     "zod": "^3.22.4"
   },
   "devDependencies": {
