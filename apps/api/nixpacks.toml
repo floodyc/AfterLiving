@@ -1,0 +1,19 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "pnpm"]
+
+[phases.install]
+cmds = [
+  "corepack enable",
+  "corepack prepare pnpm@8.15.0 --activate",
+  "pnpm install --frozen-lockfile"
+]
+
+[phases.build]
+cmds = [
+  "pnpm --filter @legacyvideo/db build",
+  "pnpm --filter @legacyvideo/shared build",
+  "pnpm --filter @legacyvideo/api build"
+]
+
+[start]
+cmd = "pnpm --filter @legacyvideo/api start"
