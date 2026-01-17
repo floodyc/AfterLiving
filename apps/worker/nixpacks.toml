@@ -16,3 +16,6 @@ cmds = [
 
 [start]
 cmd = "pnpm --filter @legacyvideo/worker start"
+
+[variables]
+NODE_ENV = "production"
