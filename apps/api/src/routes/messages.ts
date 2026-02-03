@@ -108,16 +108,17 @@ export async function messageRoutes(server: FastifyInstance) {
         planId: body.planId,
         title: body.title,
         description: body.description,
+        releaseConditions: body.releaseConditions,
         storageKey, // Temporary, will be updated after upload
         encryptedDataKey: '', // Will be set after upload
         contentType: '',
         sizeBytes: 0,
         status: 'DRAFT',
         recipients: {
-          create: body.recipientEmails.map((email) => ({
+          create: body.recipientEmails?.map((email) => ({
             email,
             status: 'PENDING',
-          })),
+          })) || [],
         },
       },
       include: {
@@ -130,7 +131,7 @@ export async function messageRoutes(server: FastifyInstance) {
       action: 'MESSAGE_CREATED',
       entityType: 'VideoMessage',
       entityId: message.id,
-      metadata: { title: message.title, recipientCount: body.recipientEmails.length },
+      metadata: { title: message.title, recipientCount: body.recipientEmails?.length || 0 },
       ipAddress: request.ip,
       userAgent: request.headers['user-agent'],
     });
@@ -216,3 +217,4 @@ export async function messageRoutes(server: FastifyInstance) {
     }
   );
 }
+

@@ -88,20 +88,21 @@ model LegacyPlan {
 }
 
 model VideoMessage {
-  id               String        @id @default(cuid())
-  planId           String
-  title            String
-  description      String?
-  storageKey       String        @unique // S3 object key
-  encryptedDataKey String // Data encryption key encrypted with master key
-  contentType      String
-  sizeBytes        BigInt
-  durationSeconds  Int?
-  status           MessageStatus @default(DRAFT)
-  uploadedAt       DateTime?
-  releasedAt       DateTime?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  planId            String
+  title             String
+  description       String?
+  releaseConditions String? // Special conditions for when to release this message
+  storageKey        String        @unique // S3 object key
+  encryptedDataKey  String // Data encryption key encrypted with master key
+  contentType       String
+  sizeBytes         BigInt
+  durationSeconds   Int?
+  status            MessageStatus @default(DRAFT)
+  uploadedAt        DateTime?
+  releasedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   plan             LegacyPlan        @relation(fields: [planId], references: [id], onDelete: Cascade)
   recipients       Recipient[]
@@ -166,7 +167,7 @@ model ReleaseRequest {
   status      ReleaseRequestStatus @default(PENDING)
   processedAt DateTime?
   createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  updatedAt   DateTime             @default(now()) @updatedAt
 
   plan      LegacyPlan        @relation(fields: [planId], references: [id], onDelete: Cascade)
   verifier  Verifier          @relation(fields: [verifierId], references: [id], onDelete: Cascade)
@@ -237,3 +238,4 @@ model AuditEvent {
   @@index([createdAt])
   @@map("audit_events")
 }
+

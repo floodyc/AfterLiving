@@ -33,7 +33,8 @@ export const createMessageSchema = z.object({
   planId: z.string().cuid(),
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(1000).optional(),
-  recipientEmails: z.array(z.string().email()).min(1, 'At least one recipient is required').max(50),
+  releaseConditions: z.string().max(1000).optional(),
+  recipientEmails: z.array(z.string().email()).max(50).optional().default([]),
 });
 
 export const uploadMetadataSchema = z.object({
@@ -88,3 +89,4 @@ export const paginationSchema = z.object({
 export const recipientAccessSchema = z.object({
   token: z.string().min(1),
 });
+
