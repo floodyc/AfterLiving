@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@legacyvideo/db": "workspace:*",
-    "zod": "^3.22.4"
-  },
-  "devDependencies": {
+    "zod": "^3.22.4",
     "@types/node": "^20.10.6",
     "typescript": "^5.3.3"
+  },
+  "devDependencies": {
   }
 }
