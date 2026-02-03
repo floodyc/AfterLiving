@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { VideoRecorder } from '@/components/VideoRecorder';
 
 interface Message {
   id: string;
@@ -30,6 +31,7 @@ export default function MessageDetailPage({ params }: { params: { id: string } }
   const [message, setMessage] = useState<Message | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showUpload, setShowUpload] = useState(false);
 
   useEffect(() => {
     loadMessage();
@@ -106,33 +108,77 @@ export default function MessageDetailPage({ params }: { params: { id: string } }
           )}
         </div>
 
+        {/* Video Section */}
         <div className="bg-white rounded-lg shadow mb-6">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Video</h2>
+          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {message.videoUrl ? 'Your Message' : 'Record Your Message'}
+            </h2>
+            {!message.videoUrl && !showUpload && (
+              <button
+                onClick={() => setShowUpload(true)}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                Upload file instead
+              </button>
+            )}
           </div>
           <div className="p-6">
             {message.videoUrl ? (
-              <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center">
-                <video
-                  controls
-                  className="max-w-full max-h-full"
-                  src={message.videoUrl}
+              <div>
+                <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center mb-4">
+                  <video
+                    controls
+                    className="max-w-full max-h-full"
+                    src={message.videoUrl}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+                <button
+                  onClick={() => setShowUpload(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
-                  Your browser does not support the video tag.
-                </video>
+                  Record New Message
+                </button>
+              </div>
+            ) : showUpload ? (
+              <div>
+                <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg mb-4">
+                  <p className="text-gray-500 mb-4">Upload a pre-recorded message</p>
+                  <input
+                    type="file"
+                    accept="video/*,audio/*"
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    Choose File
+                  </label>
+                  <p className="text-xs text-gray-400 mt-2">Max file size: 500MB</p>
+                </div>
+                <button
+                  onClick={() => setShowUpload(false)}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  ← Back to recording
+                </button>
               </div>
             ) : (
-              <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
-                <p className="text-gray-500 mb-4">No video uploaded yet</p>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                  Upload Video
-                </button>
-                <p className="text-xs text-gray-400 mt-2">Max file size: 500MB</p>
-              </div>
+              <VideoRecorder
+                messageId={message.id}
+                onUploadComplete={() => {
+                  loadMessage();
+                }}
+              />
             )}
           </div>
         </div>
 
+        {/* Recipients Section */}
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-900">Recipients</h2>
@@ -175,11 +221,12 @@ export default function MessageDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
 
+        {/* Info Box */}
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-yellow-900 mb-2">Message Status</h3>
           <p className="text-sm text-yellow-800">
-            {message.status === 'DRAFT' && 'This message is in draft status. Upload a video and add recipients to make it ready.'}
-            {message.status === 'PENDING_UPLOAD' && 'Upload your video to continue.'}
+            {message.status === 'DRAFT' && 'This message is in draft status. Record a video and add recipients to make it ready.'}
+            {message.status === 'PENDING_UPLOAD' && 'Record your video to continue.'}
             {message.status === 'UPLOADED' && 'Video uploaded. Add recipients to complete setup.'}
             {message.status === 'READY' && 'This message is ready. It will be delivered to recipients when your verifiers approve release.'}
           </p>
@@ -188,3 +235,4 @@ export default function MessageDetailPage({ params }: { params: { id: string } }
     </div>
   );
 }
+
