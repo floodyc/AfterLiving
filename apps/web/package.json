@@ -2,6 +2,12 @@
   "name": "@legacyvideo/web",
   "version": "1.0.0",
   "private": true,
+{
+  "name": "@legacyvideo/web",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@8.15.0",
+  "scripts": {
   "scripts": {
     "dev": "next dev",
     "build": "next build",
