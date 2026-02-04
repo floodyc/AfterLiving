@@ -10,6 +10,7 @@ export const AUDIT_ACTIONS = {
   PLAN_CREATED: 'PLAN_CREATED',
   PLAN_UPDATED: 'PLAN_UPDATED',
   PLAN_SUSPENDED: 'PLAN_SUSPENDED',
+  PLAN_DELETED: 'PLAN_DELETED',
   PLAN_COMPLETED: 'PLAN_COMPLETED',
 
   // Messages
@@ -57,3 +58,4 @@ export const RATE_LIMITS = {
   UPLOAD: { max: 5, window: 60 * 60 * 1000 }, // 5 per hour
   RELEASE: { max: 3, window: 60 * 60 * 1000 }, // 3 per hour
 } as const;
+
