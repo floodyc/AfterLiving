@@ -38,7 +38,10 @@ export async function messageRoutes(server: FastifyInstance) {
 
       return {
         success: true,
-        data: messages,
+        data: messages.map(m => ({
+          ...m,
+          sizeBytes: Number(m.sizeBytes),
+        })),
       };
     }
   );
@@ -72,7 +75,10 @@ export async function messageRoutes(server: FastifyInstance) {
 
       return {
         success: true,
-        data: message,
+        data: message ? {
+          ...message,
+          sizeBytes: Number(message.sizeBytes),
+        } : null,
       };
     }
   );
@@ -138,7 +144,10 @@ export async function messageRoutes(server: FastifyInstance) {
 
     return reply.status(201).send({
       success: true,
-      data: message,
+      data: {
+        ...message,
+        sizeBytes: Number(message.sizeBytes),
+      },
     });
   });
 
@@ -174,7 +183,10 @@ export async function messageRoutes(server: FastifyInstance) {
 
       return {
         success: true,
-        data: message,
+        data: {
+          ...message,
+          sizeBytes: Number(message.sizeBytes),
+        },
       };
     }
   );
@@ -217,4 +229,5 @@ export async function messageRoutes(server: FastifyInstance) {
     }
   );
 }
+
 
