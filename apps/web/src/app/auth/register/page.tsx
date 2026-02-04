@@ -47,13 +47,16 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+          <h2 className="mt-6 text-center text-5xl font-bold text-blue-900">
+            📬 LetterBox
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <h3 className="mt-4 text-center text-2xl font-semibold text-gray-800">
+            Get Started Free
+          </h3>
+          <p className="mt-3 text-center text-lg text-gray-600">
             Already have an account?{' '}
-            <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
-              Sign in
+            <Link href="/auth/login" className="font-semibold text-blue-600 hover:text-blue-700 underline">
+              Log In Here
             </Link>
           </p>
         </div>
@@ -91,14 +94,14 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 required
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Min 8 characters"
+                placeholder="At least 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <div>
               <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
-                Confirm password
+                Confirm Password
               </label>
               <input
                 id="confirm-password"
@@ -107,7 +110,7 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 required
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Confirm password"
+                placeholder="Re-enter password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
@@ -120,7 +123,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </div>
         </form>
@@ -128,3 +131,4 @@ export default function RegisterPage() {
     </div>
   )
 }
+
