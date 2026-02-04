@@ -133,9 +133,8 @@ export function VideoRecorder({ messageId, onUploadComplete }: VideoRecorderProp
       setProgress(0);
 
       const urlResponse = await api.post(`/api/uploads/${messageId}/url`, {
-        filename: `recording-${Date.now()}.webm`,
         contentType: blob.type,
-        size: blob.size,
+        sizeBytes: blob.size,
       });
 
       const { uploadUrl, storageKey } = urlResponse.data.data;
@@ -306,4 +305,5 @@ export function VideoRecorder({ messageId, onUploadComplete }: VideoRecorderProp
     </div>
   );
 }
+
 

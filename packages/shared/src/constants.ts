@@ -47,6 +47,9 @@ export const ALLOWED_VIDEO_TYPES = [
   'video/webm',
   'video/quicktime',
   'video/x-matroska',
+  'audio/webm',
+  'audio/mp4',
+  'audio/mpeg',
 ];
 
 export const RECIPIENT_TOKEN_EXPIRY_HOURS = 24;
@@ -58,4 +61,5 @@ export const RATE_LIMITS = {
   UPLOAD: { max: 5, window: 60 * 60 * 1000 }, // 5 per hour
   RELEASE: { max: 3, window: 60 * 60 * 1000 }, // 3 per hour
 } as const;
+
 
