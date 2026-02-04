@@ -45,6 +45,7 @@ export const plansApi = {
   create: (data: any) => api.post('/api/plans', data),
   update: (id: string, data: any) => api.patch(`/api/plans/${id}`, data),
   suspend: (id: string) => api.post(`/api/plans/${id}/suspend`),
+  delete: (id: string) => api.delete(`/api/plans/${id}`),
 };
 
 export const messagesApi = {
@@ -88,3 +89,4 @@ export const adminApi = {
   denyRelease: (id: string) => api.post(`/api/admin/releases/${id}/deny`),
   getStats: () => api.get('/api/admin/stats'),
 };
+

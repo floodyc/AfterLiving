@@ -191,4 +191,42 @@ export async function planRoutes(server: FastifyInstance) {
       };
     }
   );
+
+  // Delete plan
+  server.delete<{ Params: { id: string } }>(
+    '/:id',
+    { preHandler: [authenticate, requirePlanOwnership('id')] },
+    async (request, reply) => {
+      const plan = await prisma.legacyPlan.findUnique({
+        where: { id: request.params.id },
+      });
+
+      if (!plan) {
+        return reply.status(404).send({
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Plan not found',
+          },
+        });
+      }
+
+      await prisma.legacyPlan.delete({
+        where: { id: request.params.id },
+      });
+
+      await auditService.log({
+        userId: request.user!.id,
+        action: 'PLAN_DELETED',
+        entityType: 'LegacyPlan',
+        entityId: plan.id,
+        metadata: { title: plan.title },
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'],
+      });
+
+      return reply.status(204).send();
+    }
+  );
 }
+

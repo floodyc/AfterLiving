@@ -16,6 +16,7 @@ export function VideoRecorder({ messageId, onUploadComplete }: VideoRecorderProp
   const [progress, setProgress] = useState(0);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingType, setRecordingType] = useState<'video' | 'audio'>('video');
+  const [previewActive, setPreviewActive] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -23,40 +24,67 @@ export function VideoRecorder({ messageId, onUploadComplete }: VideoRecorderProp
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Auto-start camera preview for video mode
   useEffect(() => {
+    if (recordingType === 'video' && !previewActive && state === 'idle') {
+      startPreview();
+    }
     return () => {
       stopStream();
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []);
+  }, [recordingType]);
+
+  const startPreview = async () => {
+    try {
+      setError('');
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+
+      setPreviewActive(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to access camera');
+    }
+  };
 
   const stopStream = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    setPreviewActive(false);
   };
 
   const startRecording = async () => {
     try {
       setError('');
 
-      const constraints = recordingType === 'video'
-        ? { video: true, audio: true }
-        : { audio: true };
+      // If no stream exists, get one
+      if (!streamRef.current) {
+        const constraints = recordingType === 'video'
+          ? { video: true, audio: true }
+          : { audio: true };
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
 
-      if (videoRef.current && recordingType === 'video') {
-        videoRef.current.srcObject = stream;
+        if (videoRef.current && recordingType === 'video') {
+          videoRef.current.srcObject = stream;
+        }
       }
 
       const mimeType = recordingType === 'video'
         ? 'video/webm;codecs=vp9,opus'
         : 'audio/webm;codecs=opus';
 
-      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      const mediaRecorder = new MediaRecorder(streamRef.current, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
@@ -90,7 +118,7 @@ export function VideoRecorder({ messageId, onUploadComplete }: VideoRecorderProp
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       setState('stopped');
-      stopStream();
+      // Keep preview active - don't stop stream
 
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -130,6 +158,11 @@ export function VideoRecorder({ messageId, onUploadComplete }: VideoRecorderProp
           setState('idle');
           setProgress(0);
           onUploadComplete();
+
+          // Restart preview for next recording
+          if (recordingType === 'video') {
+            setTimeout(() => startPreview(), 500);
+          }
         } else {
           throw new Error('Upload failed');
         }
@@ -189,8 +222,8 @@ export function VideoRecorder({ messageId, onUploadComplete }: VideoRecorderProp
         </div>
       )}
 
-      {recordingType === 'video' && (state === 'recording' || state === 'stopped') && (
-        <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
+      {recordingType === 'video' && (
+        <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden relative">
           <video
             ref={videoRef}
             autoPlay
@@ -198,6 +231,12 @@ export function VideoRecorder({ messageId, onUploadComplete }: VideoRecorderProp
             playsInline
             className="w-full h-full object-cover"
           />
+          {state === 'idle' && previewActive && (
+            <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+              <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+              Camera Ready
+            </div>
+          )}
         </div>
       )}
 
@@ -267,3 +306,4 @@ export function VideoRecorder({ messageId, onUploadComplete }: VideoRecorderProp
     </div>
   );
 }
+
